@@ -1,0 +1,25 @@
+# this is created on DR
+apiVersion: protect.trident.netapp.io/v1
+kind: AppMirrorRelationship
+metadata:
+  name: application-api-amr
+  #namespace: app-prod
+spec:
+  desiredState: Established
+  #promotedSnapshot: 
+  destinationAppVaultRef: lab-vault
+  namespaceMapping:
+  - destination: application-api
+    source: application-api
+  recurrenceRule: |-
+    DTSTART:20240901T000200Z
+    RRULE:FREQ=MINUTELY;INTERVAL=5
+  sourceAppVaultRef: lab-vault
+  sourceApplicationName: one
+  sourceApplicationUID: 27a608f1-cceb-4b37-bb1d-0f6a4dee84b0
+  #storageClassName: storage-class-iscsi
+  storageClassMapping:
+    - source: storage-class-iscsi
+      destination: storage-class-iscsi
+    - source: storage-class-nfs
+      destination: storage-class-nfs

@@ -1,0 +1,16 @@
+## prod
+apiVersion: protect.trident.netapp.io/v1
+kind: Schedule
+metadata:
+  name: snap-sched1
+  #namespace: app-prod
+spec:
+  appVaultRef: lab-vault
+  applicationRef: one
+  backupRetention: "5"
+  enabled: true
+  granularity: Custom
+  recurrenceRule: |-
+    DTSTART:20250430T000000Z
+    RRULE:FREQ=MINUTELY;INTERVAL=5
+  snapshotRetention: "5"

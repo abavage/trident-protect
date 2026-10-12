@@ -1,0 +1,17 @@
+apiVersion: trident.netapp.io/v1
+kind: TridentBackendConfig
+metadata:
+  name: dr-backend-fsxn-iscsi
+  namespace: trident
+spec:
+  version: 1
+  backendName: dr-fsxn-iscsi
+  storageDriverName: ontap-san
+  managementLIF: 10.10.0.8
+  sanType: iscsi
+  storagePrefix: dr
+  defaults:
+    snapshotDir: 'true'
+    nameTemplate: "{{ .config.StoragePrefix }}_{{ .config.BackendName }}_{{ .volume.Namespace }}_{{ .volume.RequestName }}"
+  credentials:
+    name: dr-backend-fsxn-secret

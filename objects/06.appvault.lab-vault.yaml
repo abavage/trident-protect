@@ -1,0 +1,28 @@
+apiVersion: protect.trident.netapp.io/v1
+kind: AppVault
+metadata:
+  name: lab-vault
+  namespace: trident-protect
+spec:
+  dataMoverPasswordSecretRef: appvault-secret
+  providerConfig:
+    azure:
+      accountName: ""
+      bucketName: ""
+      endpoint: ""
+    gcp:
+      bucketName: ""
+      projectID: ""
+    s3:
+      bucketName: bucket-q8c54-2
+      endpoint: s3.us-east-1.amazonaws.com
+  providerCredentials:
+    accessKeyID:
+      valueFromSecret:
+        key: accessKeyID
+        name: aws-s3-keys
+    secretAccessKey:
+      valueFromSecret:
+        key: secretAccessKey
+        name: aws-s3-keys
+  providerType: AWS

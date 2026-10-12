@@ -1,0 +1,153 @@
+#---
+#apiVersion: v1
+#kind: Namespace
+#metadata:
+#  labels:
+#    kubernetes.io/metadata.name: app-prod
+#  name: app-prod
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "3"
+  labels:
+    app: one
+  name: one
+  #namespace: app-prod
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: one
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: one
+    spec:
+      containers:
+      - image: registry.redhat.io/rhel8/httpd-24:1780548837
+        imagePullPolicy: IfNotPresent
+        name: httpd
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/www/html
+          name: shared
+        - mountPath: /iscsi
+          name: iscsi
+        - mountPath: /nfs
+          name: nfs
+      dnsPolicy: ClusterFirst
+      initContainers:
+      - args:
+        - |
+          echo "today: RED GREEN BLUE" > /data/index.html
+        command:
+        - /bin/bash
+        - -c
+        image: registry.redhat.io/ubi9/ubi:9.8-1780554162
+        imagePullPolicy: IfNotPresent
+        name: update
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /data
+          name: shared
+      resources:
+        limits:
+          cpu: 500m
+          memory: 250Mi
+        requests:
+          cpu: 250m
+          memory: 125Mi
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: shared
+      - name: iscsi
+        persistentVolumeClaim:
+          claimName: iscsi
+      - name: nfs
+        persistentVolumeClaim:
+          claimName: nfs
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: one
+  name: one
+  #namespace: app-prod
+spec:
+  type: ClusterIP
+  ports:
+  - name: 8080-8080
+    port: 8080
+  selector:
+    app: one
+
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    app: one
+  name: one
+  #namespace: app-prod
+spec:
+  host: 
+  port:
+    targetPort: 8080-8080
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
+  to:
+    kind: Service
+    name: one
+    weight: 100
+  wildcardPolicy: None
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    trident.netapp.io/snapshotDirectory: "true"
+  name: iscsi
+  #namespace: app-prod
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+  storageClassName: storage-class-iscsi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    trident.netapp.io/snapshotDirectory: "true"
+  name: nfs
+  #namespace: app-prod
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 3Gi
+  storageClassName: storage-class-nfs

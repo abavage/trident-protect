@@ -1,0 +1,8 @@
+apiVersion: protect.trident.netapp.io/v1
+kind: ShutdownSnapshot
+metadata:
+  name: replication-shutdown-snapshot-1
+  #namespace: app-prod
+spec:
+  appVaultRef: lab-vault
+  applicationRef: one

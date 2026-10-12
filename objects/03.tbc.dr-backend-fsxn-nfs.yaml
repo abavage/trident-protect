@@ -1,0 +1,17 @@
+apiVersion: trident.netapp.io/v1
+kind: TridentBackendConfig
+metadata:
+  name: dr-backend-fsxn-nfs
+  namespace: trident
+spec:
+  version: 1
+  backendName: dr-fsxn-nfs
+  storageDriverName: ontap-nas
+  managementLIF: 10.10.0.8
+  nasType: nfs
+  storagePrefix: dr
+  defaults:
+    snapshotDir: 'true'
+    nameTemplate: "{{ .config.StoragePrefix }}_{{ .config.BackendName }}.{{ .volume.Namespace }}_{{ .volume.RequestName }}"
+  credentials:
+    name: dr-backend-fsxn-secret

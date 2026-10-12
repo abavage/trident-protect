@@ -1,0 +1,24 @@
+apiVersion: protect.trident.netapp.io/v1
+kind: AppMirrorRelationship
+metadata:
+  name: application-api-amr
+  #namespace: app-prod
+spec:
+  desiredState: Established
+  destinationAppVaultRef: lab-vault
+  namespaceMapping:
+  - destination: application-api
+    source: application-api
+  recurrenceRule: |-
+    DTSTART:20240901T000200Z
+    RRULE:FREQ=MINUTELY;INTERVAL=5
+  sourceAppVaultRef: lab-vault
+  sourceApplicationName: one
+  sourceApplicationUID: 6aca5133-d3b8-426d-8f6b-3749cfe0b0ce
+  #storageClassName: storage-class-iscsi
+  storageClassMapping:
+    - source: storage-class-iscsi
+      destination: storage-class-iscsi
+    - source: storage-class-nfs
+      destination: storage-class-nfs
+  #promotedSnapshot: snapshots/20261008060349_replication-shutdown-snapshot-1_2c43516d-ddff-4de4-b82e-10b4c5e72b2e
