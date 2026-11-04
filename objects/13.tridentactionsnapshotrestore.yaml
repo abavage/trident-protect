@@ -1,0 +1,15 @@
+# oc get volumesnapshot | grep iscsi
+# if wanting to use this the snap needs to be the absolute latest snap.
+# Trident prevents rolling back to an older snapshot directly in-place with TASR because doing so would orphan or invalidate the newer subsequent snapshots chained to that volume.
+# TridentActionSnapshotRestore (TASR) Custom Resource (CR) in Kubernetes, Astra Trident performs an imperative, in-place data restoration, meaning it reverts the original Persistent Volume (PV) back to the exact block or file-level state it was in when the target snapshot was taken
+# oc get VolumeSnapshot | grep iscsi
+# oc scale deploy name --replicas=0
+---
+apiVersion: trident.netapp.io/v1
+kind: TridentActionSnapshotRestore
+metadata:
+  name: iscsi-pvc-restore
+  namespace: app-prod
+spec:
+  pvcName: iscsi
+  volumeSnapshotName: snapshot-536e1d64-3f46-438a-ad62-f7407b1b1b3c-pvc-60855aa7-5c5d-4922-9387-bd01cfcd660d

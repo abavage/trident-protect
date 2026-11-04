@@ -1,0 +1,147 @@
+# oc get snapshot custom-f827c-20261001054500 -o yaml | yq '.status.appArchivePath,.status.appVaultRef'
+# this retsores the iscsi pvc back to the original state in the same namespace
+# the workload needs to be scaled down as it tries to delete the pvc while everything is running and fails to delete.
+# the process disables all schedules during the process and re enables. - both snapshot and backup
+# this creates a volume clone!! "volume clone show" on the backed.
+# doning this continually will fill the volume and make the PVC read only
+# need to expand the pvc 
+#
+# when this runs the snap stays forever
+# the clone needs to be purged and the backign snap by storage
+
+% oc get snapshot
+NAME                          APP   RECLAIM POLICY   STATE       ERROR   AGE
+custom-d4031-20261103045500   one   Delete           Completed           84m
+custom-d4031-20261103055500   one   Delete           Completed           24m
+custom-d4031-20261103060000   one   Delete           Completed           19m
+custom-d4031-20261103060500   one   Delete           Completed           14m
+custom-d4031-20261103061000   one   Delete           Completed           9m57s
+custom-d4031-20261103061500   one   Delete           Completed           4m57s
+
+oc get pvc iscsi
+NAME    STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS          VOLUMEATTRIBUTESCLASS   AGE
+iscsi   Bound    pvc-dd76acfb-3af9-4de5-80e5-348bd68194dc   2Gi        RWO            storage-class-iscsi   <unset>                 81m
+
+SVM1::> volume snapshot show -volume prod_pvc_dd76acfb_3af9_4de5_80e5_348bd68194dc
+                                                                 ---Blocks---
+Vserver  Volume   Snapshot                                  Size Total% Used%
+-------- -------- ------------------------------------- -------- ------ -----
+SVM1     prod_pvc_dd76acfb_3af9_4de5_80e5_348bd68194dc
+                  snapshot-eb32cc26-157b-4a2e-875f-1f8557f6c960
+                                                         29.13MB     1%   11%         <-----
+                  snapshot-38d44dc3-d4ae-4ebe-8310-e64793cdaab8
+                                                           172KB     0%    0%
+                  snapshot-08446896-ae97-4016-bfa0-a4a465d7e5b6
+                                                           172KB     0%    0%
+                  snapshot-b19298fb-539d-4d6f-98bc-82f981c754e9
+                                                           172KB     0%    0%
+                  snapshot-fb1ccd12-8924-4fd5-9289-6ee6c79dcd22
+                                                           172KB     0%    0%
+                  snapshot-ea39253d-ed33-4d21-b080-98bc99b3ef31
+                                                           172KB     0%    0%
+6 entries were displayed.
+
+SVM1::> volume clone show -parent-volume  prod_pvc_dd76acfb_3af9_4de5_80e5_348bd68194dc
+                      Parent  Parent        Parent
+Vserver FlexClone     Vserver Volume        Snapshot             State     Type
+------- ------------- ------- ------------- -------------------- --------- ----
+SVM1    prod_pvc_c37d90dd_b2e2_4c2e_83fc_a5375f63fc13_1144
+                      SVM1    prod_pvc_dd76acfb_3af9_4de5_80e5_348bd68194dc
+                                            snapshot-eb32cc26-157b-4a2e-875f-1f8557f6c960
+                                                                 offline   -
+
+
+SVM1::> volume clone split start -flexclone prod_pvc_c37d90dd_b2e2_4c2e_83fc_a5375f63fc13_1144 -foreground true
+
+Error: command failed: Volume prod_pvc_c37d90dd_b2e2_4c2e_83fc_a5375f63fc13_1144 is not
+       online. It needs to be online for this operation.
+
+SVM1::>
+SVM1::>
+SVM1::>
+SVM1::> volume online -volume prod_pvc_c37d90dd_b2e2_4c2e_83fc_a5375f63fc13_1144            vol online: Error onlining volume
+"SVM1:prod_pvc_c37d90dd_b2e2_4c2e_83fc_a5375f63fc13_1144". This operation is not supported
+on a volume of type "DEL".
+
+
+The "DEL" type indicates that this volume has already been logically deleted (likely by Trident Protect's background garbage collection catching up) but is currently sitting in ONTAP's Volume Recovery Queue.
+
+The Recovery Queue acts as a recycle bin. Because the clone is technically in the trash, you cannot bring it online or split it. However, it still holds the lock on your parent snapshot until it is permanently purged.
+
+
+SVM1::> set -privilege advanced
+
+Warning: These advanced commands are potentially dangerous; use them only when directed to
+         do so by NetApp personnel.
+Do you want to continue? {y|n}: y
+
+SVM1::*> volume recovery-queue purge -vserver SVM1 -volume prod_pvc_c37d90dd_b2e2_4c2e_83fc_a5375f63fc13_1144
+
+Error: invalid argument "-vserver"
+
+SVM1::*> volume recovery-queue purge  -volume prod_pvc_c37d90dd_b2e2_4c2e_83fc_a5375f63fc13_1144
+[Job 632] Job succeeded: Successful
+
+volume snapshot show  -volume prod_pvc_dd76acfb_3af9_4de5_80e5_348bd68194dc -snapshot snapshot-eb32cc26-157b-4a2e-875f-1f8557f6c960 -fields owners
+vserver volume                                        snapshot                                      owners
+------- --------------------------------------------- --------------------------------------------- ------
+SVM1    prod_pvc_dd76acfb_3af9_4de5_80e5_348bd68194dc snapshot-eb32cc26-157b-4a2e-875f-1f8557f6c960 -
+
+
+SVM1::> volume clone show 
+This table is currently empty.
+
+SVM1::> vol snapshot show -volume prod_pvc_dd76acfb_3af9_4de5_80e5_348bd68194dc
+                                                                 ---Blocks---
+Vserver  Volume   Snapshot                                  Size Total% Used%
+-------- -------- ------------------------------------- -------- ------ -----
+SVM1     prod_pvc_dd76acfb_3af9_4de5_80e5_348bd68194dc
+                  snapshot-414d524a-3ca8-409d-ad62-dabb5dc6ec8b
+                                                           172KB     0%    0%
+                  snapshot-2dbb3fc3-214a-4d75-8319-3746fecfc6c4
+                                                           172KB     0%    0%
+                  snapshot-44783fb4-4884-48af-912d-5fa849d6dec5
+                                                           172KB     0%    0%
+                  snapshot-b26b6bb1-5b13-472b-8b52-b06001bc72a2
+                                                           172KB     0%    0%
+                  snapshot-3b1e5cb3-295b-47cc-bed2-ddb0a91f568c
+                                                           172KB     0%    0%
+5 entries were displayed.
+
+
+
+NetApp Custom Resources used for reverting to a previous state, they belong to different products and operate at entirely different scopes: TridentActionSnapshotRestore handles a single storage volume, whereas SnapshotInplaceRestore handles a complete application stack.
+
+TridentActionSnapshotRestorei
+Product: Core NetApp Trident CSI Driver (trident.netapp.io/v1).
+Scope: Single Volume (PVC).   
+Function: Reverts a single PersistentVolumeClaim directly to a standard Kubernetes VolumeSnapshot.
+Workflow: Highly manual. As you experienced earlier, you must manually scale down any workloads attached to the PVC before applying the restore, and manually scale them back up once finished.
+
+SnapshotInplaceRestore
+Product: NetApp Trident Protect (protect.trident.netapp.io/v1).
+Scope: Full Application (Data + Kubernetes Objects).
+Function: Restores an entire logical application-which can include multiple PVCs, Deployments, ConfigMaps, and execution hooks-from a protection AppVault back into its original namespace.   
+Workflow: Automated. Trident Protect automatically pauses active protection schedules, cancels in-progress backups, orchestrates the restore, and re-enables schedules once complete. 
+
+
+
+
+---
+apiVersion: protect.trident.netapp.io/v1
+kind: SnapshotInplaceRestore
+metadata:
+  name: restore-single-pvc-1
+  namespace: app-prod
+spec:
+  appVaultRef: lab-vault
+  appArchivePath: one_8171833c-1701-4051-ae5f-206eb5f1c5b7/snapshots/20261103045500_custom-d4031-20261103045500_449f18c9-004f-4afc-9e55-a93eb73a3112
+  resourceFilter:
+    resourceSelectionCriteria: "Include"
+    resourceMatchers:
+      - kind: PersistentVolumeClaim
+        version: v1
+        names: 
+          - iscsi
+        namespaces: 
+          - app-prod

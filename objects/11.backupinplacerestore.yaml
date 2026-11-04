@@ -1,0 +1,13 @@
+# applied directly over the top of everything in the namespace
+# deletes everytihng
+# disables all schedules
+# re applies all config
+# re enables schedules
+apiVersion: protect.trident.netapp.io/v1
+kind: BackupInplaceRestore
+metadata:
+  name: backup-in-place-restore-1
+  namespace: app-prod
+spec:
+  appArchivePath: one_f1ec0600-1d60-4031-98b7-4b0b391ab483/backups/custom-db078-20261104024400_d01d13a8-c711-4c03-a9b6-fb05a63946b2
+  appVaultRef: lab-vault-second

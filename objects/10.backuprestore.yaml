@@ -1,0 +1,36 @@
+# this retores to another namespace or cluster
+# it does not touch schedules or anything else
+apiVersion: protect.trident.netapp.io/v1
+kind: BackupRestore
+metadata:
+  name: backup-restore-1
+  # destination namespace
+  namespace: app-prod-test
+spec:
+  # oc get backup custom-db078-20261104023700 -o yaml | yq .status.appArchivePath
+  appArchivePath: one_f1ec0600-1d60-4031-98b7-4b0b391ab483/backups/custom-db078-20261104020900_4425de1a-53a3-4053-9c8f-bf97b98dd006
+  appVaultRef: lab-vault-second
+  destinationApplicationName: andrew
+  namespaceMapping: [{"source": "app-prod", "destination": "app-prod-test"}]
+  #resourceFilter:
+  #  resourceMatchers:
+  #  - kind: PersistentVolumeClaim
+  #    version: v1
+  #    name: iscsi
+  #    labelSelectors:
+  #      - type=iscsi
+  #  resourceSelectionCriteria: Include
+  #  - kind: PersistentVolumeClaim
+  #    version: v1
+  #    name: nfs
+  #  resourceSelectionCriteria: Include
+  #transformations:
+  #  - resource:
+  #      kind: PersistentVolumeClaim
+  #      group: ""
+  #      version: v1
+  #      name: iscsi
+  #    operations:
+  #      - op: replace
+  #        path: "/metadata/name"
+  #        value: "bob"
