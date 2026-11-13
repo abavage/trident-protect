@@ -7,7 +7,7 @@ spec:
   version: 1
   backendName: dr-fsxn-nfs
   storageDriverName: ontap-nas
-  managementLIF: 10.10.0.8
+  managementLIF: 10.10.0.203
   nasType: nfs
   storagePrefix: dr
   defaults:

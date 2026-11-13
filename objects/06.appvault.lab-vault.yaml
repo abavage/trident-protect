@@ -14,7 +14,7 @@ spec:
       bucketName: ""
       projectID: ""
     s3:
-      bucketName: bucket-q8c54-2
+      bucketName: bucket-krkjj-2
       endpoint: s3.us-east-1.amazonaws.com
   providerCredentials:
     accessKeyID:

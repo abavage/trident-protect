@@ -1,0 +1,15 @@
+apiVersion: protect.trident.netapp.io/v1
+kind: Backup
+metadata:
+  annotations:
+    protect.trident.netapp.io/correlationid: 8f48dfea-52cc-40d3-ac43-c01fae343adb
+  name: backup01
+  namespace: app-prod
+spec:
+  appVaultRef: lab-vault
+  applicationRef: one
+  cleanupSnapshot: true
+  dataMover: Kopia
+  reclaimPolicy: Retain
+  replicateSnapshot: false
+  replicateSnapshotReclaimPolicy: Retain

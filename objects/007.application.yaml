@@ -2,10 +2,10 @@ apiVersion: protect.trident.netapp.io/v1
 kind: Application
 metadata:
   name: one
-  #namespace: app-prod
+  namespace: app-prod
 spec:
   includedNamespaces:
-  - namespace: application-api
+  - namespace: app-prod
   resourceFilter: {}
   #resourceFilter:
   #  resourceMatchers:

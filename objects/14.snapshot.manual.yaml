@@ -1,0 +1,16 @@
+apiVersion: protect.trident.netapp.io/v1
+kind: Snapshot
+metadata:
+  labels:
+    cluster-name: prod
+  name: snap01
+  namespace: app-prod
+spec:
+  appVaultRef: lab-vault
+  applicationRef: one
+  cleanupSnapshot: false
+  completionTimeout: 0s
+  reclaimPolicy: Delete
+  replicateSnapshotReclaimPolicy: Retain
+  volumeSnapshotsCreatedTimeout: 0s
+  volumeSnapshotsReadyToUseTimeout: 0s

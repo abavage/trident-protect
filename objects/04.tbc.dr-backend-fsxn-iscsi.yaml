@@ -7,7 +7,7 @@ spec:
   version: 1
   backendName: dr-fsxn-iscsi
   storageDriverName: ontap-san
-  managementLIF: 10.10.0.8
+  managementLIF: 10.10.0.203
   sanType: iscsi
   storagePrefix: dr
   defaults:
